@@ -1,0 +1,4 @@
+# Flask dependencies in requirements.txt
+Flask==2.1.0
+Flask-SQLAlchemy==2.5.1
+psycopg2-binary==2.9.3

@@ -64,7 +64,7 @@ To run this project locally, follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/supermarket-comparison.git
+    git clone https://github.com/z3r0d4rkn3sse/supermarket-comparison-website.git
     cd supermarket-comparison
     ```
 

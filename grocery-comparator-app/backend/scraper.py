@@ -3,6 +3,14 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import json
 
+def load_proxies_from_file(file_path):
+    """Load proxies from a text file"""
+    with open(file_path, 'r') as file:
+        proxies = [line.strip() for line in file.readlines()]
+    return proxies
+
+PROXY_LIST = load_proxies_from_file('backend/scraper/proxies.txt')
+
 # Scraper for ASDA
 def scrape_asda():
     asda_url = "https://groceries.asda.com"

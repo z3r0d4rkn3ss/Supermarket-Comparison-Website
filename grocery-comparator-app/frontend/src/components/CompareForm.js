@@ -1,20 +1,22 @@
-// src/components/CompareForm.js
 import React, { useState, useEffect } from 'react';
 import { comparePrices } from '../services/api';
 
 const CompareForm = ({ setResults }) => {
   const [productIds, setProductIds] = useState([]);
-  const [products, setProducts] = useState([]); // For displaying products to select
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch products from the API to populate the dropdowns
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/products'); // Update with correct endpoint
+        const response = await fetch('http://localhost:5000/api/products');
         const data = await response.json();
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProducts();
@@ -22,11 +24,12 @@ const CompareForm = ({ setResults }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (productIds.length > 0) {
-      // Call the comparePrices API and update the results
-      const comparisonResults = await comparePrices(productIds);
-      setResults(comparisonResults);
+    if (productIds.length === 0) {
+      alert("Please select at least one product to compare.");
+      return;
     }
+    const comparisonResults = await comparePrices(productIds);
+    setResults(comparisonResults);
   };
 
   const handleChange = (e) => {
@@ -37,7 +40,9 @@ const CompareForm = ({ setResults }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Select Products for Price Comparison</h2>
-      <select multiple={true} onChange={handleChange}>
+      {loading && <p>Loading products...</p>}
+      <select multiple={true} onChange={handleChange} aria-label="Select products for comparison">
+        <option value="" disabled>Select products</option>
         {products.map((product) => (
           <option key={product.product_id} value={product.product_id}>
             {product.name}

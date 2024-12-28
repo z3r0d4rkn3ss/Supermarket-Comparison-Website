@@ -159,7 +159,7 @@ This project is licensed under the NO License - see Google for details.
 For any questions or issues, please feel free to contact us:
 
 - Email: none
-- GitHub Issues: [https://github.com/yourusername/supermarket-comparison-website/issues](https://github.com/yourusername/supermarket-comparison-website/issues)
+- GitHub Issues: [https://github.com/z3r0d4rkn3ss/supermarket-comparison-website/issues](https://github.com/z3r0d4rkn3ss/supermarket-comparison-website/issues)
 
 ---
 

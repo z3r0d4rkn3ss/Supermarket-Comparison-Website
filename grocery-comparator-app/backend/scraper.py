@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import json
+import random
 
 def load_proxies_from_file(file_path):
     """Load proxies from a text file"""
@@ -9,61 +10,42 @@ def load_proxies_from_file(file_path):
         proxies = [line.strip() for line in file.readlines()]
     return proxies
 
+# Load proxies from a file
 PROXY_LIST = load_proxies_from_file('backend/scraper/proxies.txt')
 
-# Scraper for ASDA
-def scrape_asda():
-    asda_url = "https://groceries.asda.com"
-    response = requests.get(asda_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+def get_proxy():
+    """Return a random proxy from the list"""
+    return random.choice(PROXY_LIST) if PROXY_LIST else None
 
-    # This is a simplified example; you need to inspect the website structure
+def fetch_page(url):
+    """Fetch a page with optional proxy support"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
+    proxy = get_proxy()
+    proxies = {'http': proxy, 'https': proxy} if proxy else None
+
+    try:
+        response = requests.get(url, headers=headers, proxies=proxies, timeout=10)
+        response.raise_for_status()  # Raises an HTTPError if the response code was 4xx/5xx
+        return response.text
+    except requests.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return None
+
+def scrape_supermarket(url, supermarket_name):
+    """Generic scraper for each supermarket"""
+    print(f"Scraping {supermarket_name}...")
+
+    page_content = fetch_page(url)
+    if not page_content:
+        return []
+
+    soup = BeautifulSoup(page_content, 'html.parser')
     products = []
-    for product in soup.find_all("div", class_="product"):
-        product_name = product.find("span", class_="product-title").text.strip()
-        price = product.find("span", class_="price").text.strip()
-        
-        # Formatting prices for uniformity
-        price = float(price.replace("£", "").strip())
-        
-        products.append({
-            "name": product_name,
-            "price": price,
-            "supermarket": "ASDA",
-            "url": asda_url,
-            "date_scraped": datetime.now().isoformat()
-        })
-    return products
 
-# Scraper for Sainsbury's
-def scrape_sainsburys():
-    sainsburys_url = "https://www.sainsburys.co.uk/gol-ui/groceries"
-    response = requests.get(sainsburys_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    products = []
-    for product in soup.find_all("li", class_="product"):
-        product_name = product.find("div", class_="product-title").text.strip()
-        price = product.find("span", class_="price").text.strip()
-
-        price = float(price.replace("£", "").strip())
-
-        products.append({
-            "name": product_name,
-            "price": price,
-            "supermarket": "Sainsbury's",
-            "url": sainsburys_url,
-            "date_scraped": datetime.now().isoformat()
-        })
-    return products
-
-# Scraper for Aldi
-def scrape_aldi():
-    aldi_url = "https://groceries.aldi.co.uk"
-    response = requests.get(aldi_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    products = []
+    # Customize the scraping logic based on the supermarket's HTML structure
     for product in soup.find_all("div", class_="product"):
         product_name = product.find("span", class_="product-title").text.strip()
         price = product.find("span", class_="price").text.strip()
@@ -73,89 +55,31 @@ def scrape_aldi():
         products.append({
             "name": product_name,
             "price": price,
-            "supermarket": "Aldi",
-            "url": aldi_url,
+            "supermarket": supermarket_name,
+            "url": url,
             "date_scraped": datetime.now().isoformat()
         })
+
     return products
 
-# Scraper for Tesco
-def scrape_tesco():
-    tesco_url = "https://www.tesco.com/groceries"
-    response = requests.get(tesco_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    products = []
-    for product in soup.find_all("div", class_="product"):
-        product_name = product.find("span", class_="product-title").text.strip()
-        price = product.find("span", class_="price").text.strip()
-
-        price = float(price.replace("£", "").strip())
-
-        products.append({
-            "name": product_name,
-            "price": price,
-            "supermarket": "Tesco",
-            "url": tesco_url,
-            "date_scraped": datetime.now().isoformat()
-        })
-    return products
-
-# Scraper for Iceland
-def scrape_iceland():
-    iceland_url = "https://www.iceland.co.uk"
-    response = requests.get(iceland_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    products = []
-    for product in soup.find_all("div", class_="product"):
-        product_name = product.find("span", class_="product-title").text.strip()
-        price = product.find("span", class_="price").text.strip()
-
-        price = float(price.replace("£", "").strip())
-
-        products.append({
-            "name": product_name,
-            "price": price,
-            "supermarket": "Iceland",
-            "url": iceland_url,
-            "date_scraped": datetime.now().isoformat()
-        })
-    return products
-
-# Scraper for Morrisons
-def scrape_morrisons():
-    morrisons_url = "https://groceries.morrisons.com"
-    response = requests.get(morrisons_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    products = []
-    for product in soup.find_all("div", class_="product"):
-        product_name = product.find("span", class_="product-title").text.strip()
-        price = product.find("span", class_="price").text.strip()
-
-        price = float(price.replace("£", "").strip())
-
-        products.append({
-            "name": product_name,
-            "price": price,
-            "supermarket": "Morrisons",
-            "url": morrisons_url,
-            "date_scraped": datetime.now().isoformat()
-        })
-    return products
-
-# Main scraper function to scrape all supermarkets
 def scrape_all_supermarkets():
+    """Scrape all supermarkets and return the combined results"""
     all_products = []
 
+    # List of supermarkets and their URLs
+    supermarkets = [
+        {"url": "https://groceries.asda.com", "name": "ASDA"},
+        {"url": "https://www.sainsburys.co.uk/gol-ui/groceries", "name": "Sainsbury's"},
+        {"url": "https://groceries.aldi.co.uk", "name": "Aldi"},
+        {"url": "https://www.tesco.com/groceries", "name": "Tesco"},
+        {"url": "https://www.iceland.co.uk", "name": "Iceland"},
+        {"url": "https://groceries.morrisons.com", "name": "Morrisons"}
+    ]
+
     # Scrape each supermarket
-    all_products += scrape_asda()
-    all_products += scrape_sainsburys()
-    all_products += scrape_aldi()
-    all_products += scrape_tesco()
-    all_products += scrape_iceland()
-    all_products += scrape_morrisons()
+    for supermarket in supermarkets:
+        products = scrape_supermarket(supermarket['url'], supermarket['name'])
+        all_products.extend(products)
 
     # Optionally save the products to a JSON file for later processing
     with open('scraped_data.json', 'w') as f:

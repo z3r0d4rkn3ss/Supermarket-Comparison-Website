@@ -1,0 +1,3 @@
+http://your-proxy-server1.com:PORT
+http://your-proxy-server2.com:PORT
+http://your-proxy-server3.com:PORT

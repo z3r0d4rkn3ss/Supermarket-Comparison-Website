@@ -9,3 +9,12 @@ Website Structure:<br></br>
 <li>Hosting: AWS, Heroku, or DigitalOcean.</li>
 <li>Analytics: Google Analytics for tracking user behavior.</li>
 </ul>
+<br></br>
+/backend
+<ul>
+    <li>/app.py             # Flask app</li>
+    <li>/config.py          # Configuration for Flask and database</li>
+    <li>/models.py          # SQLAlchemy database models</li>
+    <li>/scraper.py         # Functions to scrape data from supermarkets</li>
+    <li>/requirements.txt   # Python dependencies</li>
+/ul>

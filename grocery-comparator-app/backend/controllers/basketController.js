@@ -1,24 +1,30 @@
-// Logic for handling user baskets
-
 const Basket = require('../models/basketModel');
-const User = require('../models/userModel');
 
-const addToBasket = async (req, res) => {
-  const { userId, productId } = req.body;
-  try {
-    const userBasket = await Basket.findOne({ userId });
-    if (!userBasket) {
-      const newBasket = new Basket({ userId, products: [productId] });
-      await newBasket.save();
-      return res.status(201).json({ message: 'Product added to basket' });
-    }
+// Add product to basket
+exports.addToBasket = async (req, res) => {
+  const { userId } = req.user; // Get userId from the JWT token
+  const { productId, quantity } = req.body;
 
-    userBasket.products.push(productId);
-    await userBasket.save();
-    res.status(200).json({ message: 'Product added to basket' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error adding to basket' });
+  let basket = await Basket.findOne({ userId });
+  if (!basket) {
+    basket = new Basket({ userId, products: [] });
   }
+
+  const existingProduct = basket.products.find(p => p.productId === productId);
+  if (existingProduct) {
+    existingProduct.quantity += quantity; // Increase quantity if already in basket
+  } else {
+    basket.products.push({ productId, quantity });
+  }
+
+  await basket.save();
+  res.status(200).json(basket);
 };
 
-module.exports = { addToBasket };
+// Retrieve basket
+exports.getBasket = async (req, res) => {
+  const { userId } = req.user;
+  const basket = await Basket.findOne({ userId });
+  if (!basket) return res.status(404).json({ message: 'Basket not found' });
+  res.status(200).json(basket);
+};

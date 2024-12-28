@@ -1,15 +1,19 @@
-// Scraper logic for scraping supermarket product prices
-
 const axios = require('axios');
+const cheerio = require('cheerio');
 
-const scrapePrices = async (url) => {
-  try {
-    const response = await axios.get(url);
-    // Add logic for parsing the HTML to extract price data
-    return response.data;
-  } catch (error) {
-    throw new Error('Error scraping prices');
-  }
-};
+// Scrape ASDA prices (example)
+async function scrapeAsdaPrices() {
+  const response = await axios.get('https://groceries.asda.com');
+  const $ = cheerio.load(response.data);
+  const products = [];
 
-module.exports = { scrapePrices };
+  $('some-product-selector').each((i, element) => {
+    const product = $(element).text();
+    const price = $(element).find('.price').text();
+    products.push({ product, price });
+  });
+
+  return products;
+}
+
+module.exports = { scrapeAsdaPrices };

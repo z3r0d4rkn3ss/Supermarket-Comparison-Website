@@ -2,9 +2,32 @@ from flask import Flask, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import scrape_asda, scrape_sainsburys, scrape_tesco, scrape_aldi, scrape_iceland, scrape_morrisons
 from models import db, Product, Supermarket
+from scraper.scraper import scrape_supermarket
 
 # Create Flask app
 app = Flask(__name__)
+
+@app.route('/api/compare_prices', methods=['GET'])
+def compare_prices():
+    supermarkets = [
+        'https://groceries.asda.com',
+        'https://www.sainsburys.co.uk',
+        'https://groceries.aldi.co.uk',
+        'https://www.tesco.com/groceries',
+        'https://www.iceland.co.uk',
+        'https://groceries.morrisons.com/'
+    ]
+    
+    # Scrape prices from all supermarkets and return the data
+    scraped_data = []
+    for url in supermarkets:
+        soup = scrape_supermarket(url)
+        # Process the data (parse and extract prices) and append to scraped_data
+        if soup:
+            # Example of extracting product info (this will depend on the website structure)
+            scraped_data.append({'supermarket': url, 'product': 'example_product', 'price': 'example_price'})
+
+    return jsonify(scraped_data)
 
 # Load configuration and initialize the database
 app.config.from_object('config.Config')

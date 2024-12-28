@@ -1,0 +1,9 @@
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.0
+requests==2.28.2
+beautifulsoup4==4.12.2
+psycopg2==2.9.6          # PostgreSQL database adapter (for PostgreSQL databases)
+pymongo==4.5.0            # MongoDB support (if you're using MongoDB instead)
+schedule==1.1.0           # For scheduling periodic scraping jobs
+flask-cors==3.1.1         # Cross-Origin Resource Sharing (CORS) support for the Flask app
+gunicorn==20.1.1          # WSGI HTTP server for running Flask in production

@@ -17,4 +17,4 @@ Website Structure:<br></br>
     <li>/models.py          # SQLAlchemy database models</li>
     <li>/scraper.py         # Functions to scrape data from supermarkets</li>
     <li>/requirements.txt   # Python dependencies</li>
-/ul>
+</ul>

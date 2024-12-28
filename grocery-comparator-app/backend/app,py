@@ -1,8 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import scrape_asda, scrape_sainsburys, scrape_tesco, scrape_aldi, scrape_iceland, scrape_morrisons
 from models import db, Product, Supermarket
-from scraper.scraper import scrape_supermarket
+import requests
+from bs4 import BeautifulSoup
 
 # Create Flask app
 app = Flask(__name__)
@@ -10,24 +11,50 @@ app = Flask(__name__)
 @app.route('/api/compare_prices', methods=['GET'])
 def compare_prices():
     supermarkets = [
-        'https://groceries.asda.com',
-        'https://www.sainsburys.co.uk',
-        'https://groceries.aldi.co.uk',
-        'https://www.tesco.com/groceries',
-        'https://www.iceland.co.uk',
-        'https://groceries.morrisons.com/'
+        {'name': 'ASDA', 'url': 'https://groceries.asda.com'},
+        {'name': 'Sainsbury\'s', 'url': 'https://www.sainsburys.co.uk'},
+        {'name': 'Aldi', 'url': 'https://groceries.aldi.co.uk'},
+        {'name': 'Tesco', 'url': 'https://www.tesco.com/groceries'},
+        {'name': 'Iceland', 'url': 'https://www.iceland.co.uk'},
+        {'name': 'Morrisons', 'url': 'https://groceries.morrisons.com/'}
     ]
     
     # Scrape prices from all supermarkets and return the data
     scraped_data = []
-    for url in supermarkets:
-        soup = scrape_supermarket(url)
-        # Process the data (parse and extract prices) and append to scraped_data
-        if soup:
-            # Example of extracting product info (this will depend on the website structure)
-            scraped_data.append({'supermarket': url, 'product': 'example_product', 'price': 'example_price'})
+    for supermarket in supermarkets:
+        try:
+            soup = scrape_supermarket(supermarket['url'])
+            if soup:
+                # Process the data (parse and extract prices) and append to scraped_data
+                # Example for scraping - Modify per each supermarket's structure
+                products = scrape_products_from_soup(soup, supermarket['name'])
+                scraped_data.append({
+                    'supermarket': supermarket['name'],
+                    'products': products
+                })
+        except Exception as e:
+            print(f"Error scraping {supermarket['name']}: {e}")
+            scraped_data.append({'supermarket': supermarket['name'], 'error': str(e)})
 
     return jsonify(scraped_data)
+
+def scrape_products_from_soup(soup, supermarket_name):
+    # Example: Modify this logic according to the supermarket's structure.
+    products = []
+    if supermarket_name == 'ASDA':
+        # Example scraping logic for ASDA (modify with actual soup parsing)
+        for product in soup.find_all('div', class_='product-class'):  # Replace with actual class/ID
+            name = product.find('span', class_='product-name').text.strip()
+            price = product.find('span', class_='product-price').text.strip()
+            link = product.find('a', class_='product-link')['href']
+            products.append({
+                'name': name,
+                'price': price,
+                'link': link
+            })
+    # Add other supermarkets scraping logic (similar for Sainsbury's, Aldi, etc.)
+
+    return products
 
 # Load configuration and initialize the database
 app.config.from_object('config.Config')
@@ -35,7 +62,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhos
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-# Register API routes
+# Register API routes (ensure api_routes is defined)
 app.register_blueprint(api_routes, url_prefix='/api')
 
 # Create a background scheduler for periodic tasks
@@ -46,42 +73,43 @@ def daily_scrape():
     This function will be triggered once a day to scrape all supermarkets.
     """
     print("Starting daily scrape...")
-
-    # Scrape from all supermarkets
-    products_asda = scrape_asda()
-    products_sainsburys = scrape_sainsburys()
-    products_tesco = scrape_tesco()
-    products_aldi = scrape_aldi()
-    products_iceland = scrape_iceland()
-    products_morrisons = scrape_morrisons()
-
-    # Insert/update products in the database
-    for product_list, supermarket_name in zip(
-        [products_asda, products_sainsburys, products_tesco, products_aldi, products_iceland, products_morrisons],
-        ["ASDA", "Sainsbury's", "Tesco", "Aldi", "Iceland", "Morrisons"]
-    ):
-        supermarket = Supermarket.query.filter_by(name=supermarket_name).first()
-        if supermarket is None:
-            supermarket = Supermarket(name=supermarket_name, url=f"https://{supermarket_name.lower()}.com")
-            db.session.add(supermarket)
-        
-        for product in product_list:
-            # Check if product exists, update if necessary, else insert
-            existing_product = Product.query.filter_by(name=product['name'], supermarket_id=supermarket.id).first()
-            if existing_product:
-                existing_product.price = product['price']
-                existing_product.link = product['link']
-            else:
-                new_product = Product(
-                    name=product['name'],
-                    price=product['price'],
-                    link=product['link'],
-                    supermarket=supermarket
-                )
-                db.session.add(new_product)
     
-    db.session.commit()
-    print("Daily scrape completed.")
+    try:
+        products_asda = scrape_asda()
+        products_sainsburys = scrape_sainsburys()
+        products_tesco = scrape_tesco()
+        products_aldi = scrape_aldi()
+        products_iceland = scrape_iceland()
+        products_morrisons = scrape_morrisons()
+
+        # Insert/update products in the database
+        for product_list, supermarket_name in zip(
+            [products_asda, products_sainsburys, products_tesco, products_aldi, products_iceland, products_morrisons],
+            ["ASDA", "Sainsbury's", "Tesco", "Aldi", "Iceland", "Morrisons"]
+        ):
+            supermarket = Supermarket.query.filter_by(name=supermarket_name).first()
+            if supermarket is None:
+                supermarket = Supermarket(name=supermarket_name, url=f"https://{supermarket_name.lower()}.com")
+                db.session.add(supermarket)
+            
+            for product in product_list:
+                # Check if product exists, update if necessary, else insert
+                existing_product = Product.query.filter_by(name=product['name'], supermarket_id=supermarket.id).first()
+                if existing_product:
+                    existing_product.price = product['price']
+                    existing_product.link = product['link']
+                else:
+                    new_product = Product(
+                        name=product['name'],
+                        price=product['price'],
+                        link=product['link'],
+                        supermarket=supermarket
+                    )
+                    db.session.add(new_product)
+        db.session.commit()
+        print("Daily scrape completed.")
+    except Exception as e:
+        print(f"Error during daily scrape: {e}")
 
 # Add the daily scrape task to the scheduler (runs every 24 hours)
 scheduler.add_job(daily_scrape, 'interval', days=1, start_date='2024-12-29 00:00:00')
@@ -96,16 +124,19 @@ def compare():
 
     results = []
     for item in shopping_list:
-        # Find the cheapest price for each product
-        product = Product.query.filter_by(name=item).order_by(Product.price).first()
-        if product:
-            results.append({
-                "name": product.name,
-                "price": product.price,
-                "supermarket": product.supermarket.name,
-                "link": product.link
-            })
-    
+        try:
+            # Find the cheapest price for each product
+            product = Product.query.filter_by(name=item).order_by(Product.price).first()
+            if product:
+                results.append({
+                    "name": product.name,
+                    "price": product.price,
+                    "supermarket": product.supermarket.name,
+                    "link": product.link
+                })
+        except Exception as e:
+            print(f"Error comparing product {item}: {e}")
+
     return jsonify({"results": results})
 
 if __name__ == '__main__':

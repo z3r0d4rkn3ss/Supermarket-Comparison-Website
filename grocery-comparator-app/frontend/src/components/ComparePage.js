@@ -9,24 +9,33 @@ const ComparePage = () => {
     useEffect(() => {
         const fetchComparisonData = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/compare_prices'); // Call to backend API
+                const response = await fetch('http://localhost:5000/api/compare_prices');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch comparison data');
+                }
                 const data = await response.json();
                 setComparisonData(data);
-                setLoading(false);
             } catch (error) {
                 console.error("Error fetching comparison data:", error);
+                setComparisonData([]);  // Optionally handle no data state
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchComparisonData();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="spinner"></div>;
+
+    if (!comparisonData.length) {
+        return <div>No products available for comparison.</div>;
+    }
 
     return (
         <div className="compare-page">
             <h1>Supermarket Price Comparison</h1>
-            <FilterPanel />
+            <FilterPanel data={comparisonData} /> {/* Pass data to FilterPanel if necessary */}
             <ProductList data={comparisonData} />
         </div>
     );

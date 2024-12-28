@@ -1,40 +1,51 @@
 import React, { useState } from 'react';
-import { loginUser, registerUser } from '../services/authService';
+import axiosInstance from '../services/axiosInstance';
 
-const AuthForm = ({ isLogin, setAuthenticated }) => {
-  const [username, setUsername] = useState('');
+const AuthForm = ({ type }) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = { email, password };
+
     try {
-      if (isLogin) {
-        const response = await loginUser(username, password);
-        setAuthenticated(true);
+      let response;
+      if (type === 'login') {
+        response = await axiosInstance.post('/auth/login', data);
       } else {
-        const response = await registerUser(username, password);
-        setAuthenticated(true);
+        response = await axiosInstance.post('/auth/signup', data);
+      }
+      
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        window.location.href = '/';  // Redirect to the home page after successful login/signup
       }
     } catch (error) {
-      console.error('Authentication failed', error);
+      setError('Authentication failed. Please try again.');
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      <h2>{type === 'login' ? 'Login' : 'Sign Up'}</h2>
+      {error && <p>{error}</p>}
       <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
       />
       <input
         type="password"
+        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
+        required
       />
-      <button type="submit">{isLogin ? 'Login' : 'Sign Up'}</button>
+      <button type="submit">{type === 'login' ? 'Login' : 'Sign Up'}</button>
     </form>
   );
 };

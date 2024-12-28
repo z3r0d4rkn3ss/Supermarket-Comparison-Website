@@ -1,6 +1,6 @@
 # Supermarket-Comparison-Website
 A comparison website that compares your weekly grocery shop and tells you the best and cheapest place to get your weekly groceries after comparing your basket with the supermarkets.<br></br>
-Website Structure:<br></br>
+# Website Structure:<br></br>
 <ul>
 <li>Frontend: HTML/CSS/JS, React.js or Vue.js for interactive elements.</li>
 <li>Backend: Node.js, Django, or Flask (Python) to handle the data processing and scraping.</li>
@@ -10,7 +10,7 @@ Website Structure:<br></br>
 <li>Analytics: Google Analytics for tracking user behavior.</li>
 </ul>
 <br></br>
-/backend
+# /backend
 <ul>
     <li>/app.py             # Flask app</li>
     <li>/config.py          # Configuration for Flask and database</li>

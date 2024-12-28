@@ -1,12 +1,6 @@
 import React from 'react';
 
-const Results = ({ results, products }) => {
-  // Function to get the product name by ID
-  const getProductName = (productId) => {
-    const product = products.find((prod) => prod.product_id === productId);
-    return product ? product.name : 'Unknown Product';
-  };
-
+const Results = ({ results }) => {
   return (
     <div className="results">
       <h2>Comparison Results</h2>
@@ -25,9 +19,9 @@ const Results = ({ results, products }) => {
           <tbody>
             {results.map((result, index) => (
               <tr key={index}>
-                <td>{getProductName(result.product_id)}</td>
+                <td>{result.product_id}</td>
                 <td>{result.supermarket}</td>
-                <td>{`£${result.price.toFixed(2)}`}</td>
+                <td>{result.price}</td>
                 <td>{new Date(result.date_scraped).toLocaleString()}</td>
               </tr>
             ))}

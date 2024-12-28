@@ -7,3 +7,4 @@ pymongo==4.5.0            # MongoDB support (if you're using MongoDB instead)
 schedule==1.1.0           # For scheduling periodic scraping jobs
 flask-cors==3.1.1         # Cross-Origin Resource Sharing (CORS) support for the Flask app
 gunicorn==20.1.1          # WSGI HTTP server for running Flask in production
+scrapy

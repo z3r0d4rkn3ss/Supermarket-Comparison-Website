@@ -1,37 +1,84 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
+from scraper import scrape_asda, scrape_sainsburys, scrape_tesco, scrape_aldi, scrape_iceland, scrape_morrisons
+from models import db, Product, Supermarket
 
+# Create Flask app
 app = Flask(__name__)
 
-# Configure the database (PostgreSQL in this case)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhost/grocery_comparator'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Load configuration and initialize the database
+app.config.from_object('config.Config')
+db.init_app(app)
 
-# Supermarket model
-class Supermarket(db.Model):
-    __tablename__ = 'supermarkets'
-    supermarket_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    url = db.Column(db.String(255), nullable=False)
-    affiliate_id = db.Column(db.String(100))
+# Create a background scheduler for periodic tasks
+scheduler = BackgroundScheduler()
 
-# Product model
-class Product(db.Model):
-    __tablename__ = 'products'
-    product_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    category = db.Column(db.String(100))
+def daily_scrape():
+    """
+    This function will be triggered once a day to scrape all supermarkets.
+    """
+    print("Starting daily scrape...")
 
-# Price model
-class Price(db.Model):
-    __tablename__ = 'prices'
-    price_id = db.Column(db.Integer, primary_key=True)
-    supermarket_id = db.Column(db.Integer, db.ForeignKey('supermarkets.supermarket_id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
-    price = db.Column(db.Numeric(10, 2), nullable=False)
-    date_scraped = db.Column(db.DateTime, default=db.func.current_timestamp())
+    # Scrape from all supermarkets
+    products_asda = scrape_asda()
+    products_sainsburys = scrape_sainsburys()
+    products_tesco = scrape_tesco()
+    products_aldi = scrape_aldi()
+    products_iceland = scrape_iceland()
+    products_morrisons = scrape_morrisons()
+
+    # Insert/update products in the database
+    for product_list, supermarket_name in zip(
+        [products_asda, products_sainsburys, products_tesco, products_aldi, products_iceland, products_morrisons],
+        ["ASDA", "Sainsbury's", "Tesco", "Aldi", "Iceland", "Morrisons"]
+    ):
+        supermarket = Supermarket.query.filter_by(name=supermarket_name).first()
+        if supermarket is None:
+            supermarket = Supermarket(name=supermarket_name, url=f"https://{supermarket_name.lower()}.com")
+            db.session.add(supermarket)
+        
+        for product in product_list:
+            # Check if product exists, update if necessary, else insert
+            existing_product = Product.query.filter_by(name=product['name'], supermarket_id=supermarket.id).first()
+            if existing_product:
+                existing_product.price = product['price']
+                existing_product.link = product['link']
+            else:
+                new_product = Product(
+                    name=product['name'],
+                    price=product['price'],
+                    link=product['link'],
+                    supermarket=supermarket
+                )
+                db.session.add(new_product)
+    
+    db.session.commit()
+    print("Daily scrape completed.")
+
+# Add the daily scrape task to the scheduler (runs every 24 hours)
+scheduler.add_job(daily_scrape, 'interval', days=1, start_date='2024-12-29 00:00:00')
+
+# Start the scheduler
+scheduler.start()
+
+@app.route('/compare', methods=['POST'])
+def compare():
+    data = request.get_json()
+    shopping_list = data.get("shopping_list", [])
+
+    results = []
+    for item in shopping_list:
+        # Find the cheapest price for each product
+        product = Product.query.filter_by(name=item).order_by(Product.price).first()
+        if product:
+            results.append({
+                "name": product.name,
+                "price": product.price,
+                "supermarket": product.supermarket.name,
+                "link": product.link
+            })
+    
+    return jsonify({"results": results})
 
 if __name__ == '__main__':
-    db.create_all()  # Creates the database tables
     app.run(debug=True)

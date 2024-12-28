@@ -1,9 +1,10 @@
 import jwt
 from datetime import datetime, timedelta
-from flask import current_app, request, jsonify
+from flask import current_app, request, jsonify, abort
+import os
 
-# Secret key for encoding and decoding the JWT token
-SECRET_KEY = "your-secret-key"
+# Secret key for encoding and decoding the JWT token, loaded from environment variables
+SECRET_KEY = os.getenv("SECRET_KEY", "your-default-secret-key")
 
 def encode_token(user_id):
     """
@@ -24,9 +25,9 @@ def decode_token(token):
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         return payload['sub']
     except jwt.ExpiredSignatureError:
-        raise Exception("Token has expired")
+        abort(401, description="Token has expired")
     except jwt.InvalidTokenError:
-        raise Exception("Invalid token")
+        abort(401, description="Invalid token")
 
 def require_auth(f):
     """

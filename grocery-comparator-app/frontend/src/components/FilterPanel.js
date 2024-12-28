@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-const FilterPanel = ({ onFilterChange, supermarketsList = [] }) => {
+const FilterPanel = ({ onFilterChange }) => {
     const [sortBy, setSortBy] = useState('');
     const [selectedSupermarkets, setSelectedSupermarkets] = useState([]);
 
-    // Handle sort by change (ascending or descending)
     const handleSortChange = (event) => {
         const value = event.target.value;
         setSortBy(value);
+        onFilterChange({ sortBy: value, supermarkets: selectedSupermarkets });
     };
 
-    // Handle supermarket selection change (filter by supermarkets)
     const handleSupermarketChange = (event) => {
         const value = event.target.value;
         setSelectedSupermarkets(prevState =>
@@ -18,12 +17,8 @@ const FilterPanel = ({ onFilterChange, supermarketsList = [] }) => {
                 ? prevState.filter((item) => item !== value)
                 : [...prevState, value]
         );
-    };
-
-    // Trigger filter change on state update
-    useEffect(() => {
         onFilterChange({ sortBy, supermarkets: selectedSupermarkets });
-    }, [sortBy, selectedSupermarkets, onFilterChange]);  // Ensure it triggers when either changes
+    };
 
     return (
         <div className="filter-panel">
@@ -43,16 +38,54 @@ const FilterPanel = ({ onFilterChange, supermarketsList = [] }) => {
             <div className="filter-option">
                 <label>Select Supermarkets: </label>
                 <div>
-                    {supermarketsList.map((supermarket) => (
-                        <label key={supermarket}>
-                            <input
-                                type="checkbox"
-                                value={supermarket}
-                                onChange={handleSupermarketChange}
-                            />
-                            {supermarket}
-                        </label>
-                    ))}
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="ASDA"
+                            onChange={handleSupermarketChange}
+                        />
+                        ASDA
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Sainsbury's"
+                            onChange={handleSupermarketChange}
+                        />
+                        Sainsbury's
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Aldi"
+                            onChange={handleSupermarketChange}
+                        />
+                        Aldi
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Tesco"
+                            onChange={handleSupermarketChange}
+                        />
+                        Tesco
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Iceland"
+                            onChange={handleSupermarketChange}
+                        />
+                        Iceland
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Morrisons"
+                            onChange={handleSupermarketChange}
+                        />
+                        Morrisons
+                    </label>
                 </div>
             </div>
         </div>

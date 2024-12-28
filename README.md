@@ -150,7 +150,7 @@ We welcome contributions to the project! Here’s how you can get started:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the NO License - see Google for details.
 
 ---
 
@@ -158,8 +158,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For any questions or issues, please feel free to contact us:
 
-- Email: [support@supermarketcompare.com](mailto:support@supermarketcompare.com)
-- GitHub Issues: [https://github.com/yourusername/supermarket-comparison/issues](https://github.com/yourusername/supermarket-comparison/issues)
+- Email: none
+- GitHub Issues: [https://github.com/yourusername/supermarket-comparison-website/issues](https://github.com/yourusername/supermarket-comparison-website/issues)
 
 ---
 

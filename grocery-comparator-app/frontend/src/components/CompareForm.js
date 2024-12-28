@@ -1,51 +1,51 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+// src/components/CompareForm.js
+import React, { useState, useEffect } from 'react';
+import { comparePrices } from '../services/api';
 
 const CompareForm = ({ setResults }) => {
-  const [shoppingList, setShoppingList] = useState('');
-  const [error, setError] = useState('');
+  const [productIds, setProductIds] = useState([]);
+  const [products, setProducts] = useState([]); // For displaying products to select
 
-  // Handle form input changes
-  const handleChange = (e) => {
-    setShoppingList(e.target.value);
-  };
+  useEffect(() => {
+    // Fetch products from the API to populate the dropdowns
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/products'); // Update with correct endpoint
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Basic validation
-    if (!shoppingList) {
-      setError('Please enter a shopping list.');
-      return;
+    if (productIds.length > 0) {
+      // Call the comparePrices API and update the results
+      const comparisonResults = await comparePrices(productIds);
+      setResults(comparisonResults);
     }
+  };
 
-    setError('');
-    try {
-      // Make the API request to your Flask backend
-      const response = await axios.post('http://localhost:5000/compare', {
-        shopping_list: shoppingList.split(',').map(item => item.trim()), // Split and clean the shopping list
-      });
-      setResults(response.data.results);
-    } catch (err) {
-      setError('There was an error fetching data. Please try again later.');
-    }
+  const handleChange = (e) => {
+    const selectedIds = Array.from(e.target.selectedOptions, (option) => option.value);
+    setProductIds(selectedIds);
   };
 
   return (
-    <div className="compare-form">
-      <h2>Enter Your Shopping List</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={shoppingList}
-          onChange={handleChange}
-          placeholder="Enter items, e.g., Milk, Eggs, Bread"
-        />
-        <button type="submit">Compare Prices</button>
-      </form>
-      {error && <p className="error">{error}</p>}
-    </div>
+    <form onSubmit={handleSubmit}>
+      <h2>Select Products for Price Comparison</h2>
+      <select multiple={true} onChange={handleChange}>
+        {products.map((product) => (
+          <option key={product.product_id} value={product.product_id}>
+            {product.name}
+          </option>
+        ))}
+      </select>
+      <button type="submit">Compare Prices</button>
+    </form>
   );
 };
 

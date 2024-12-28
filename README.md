@@ -10,7 +10,7 @@ A comparison website that compares your weekly grocery shop and tells you the be
 <li>Analytics: Google Analytics for tracking user behavior.</li>
 </ul>
 <br></br>
-# /backend
+<b>Backend:</b><br></br>
 <ul>
     <li>/app.py             # Flask app</li>
     <li>/config.py          # Configuration for Flask and database</li>

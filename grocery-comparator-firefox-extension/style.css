@@ -1,0 +1,33 @@
+/* style.css */
+body {
+  width: 300px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  font-size: 20px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+#product-list ul, #basket-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#product-list li, #basket-list li {
+  padding: 8px;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+}
+
+#clear-basket-btn {
+  background-color: red;
+  color: white;
+}

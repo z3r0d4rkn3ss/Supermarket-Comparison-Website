@@ -96,5 +96,3 @@ If you’re interested in purchasing this project, please contact me directly:
 This project is ready for launch and is an excellent investment for anyone looking to enter the online grocery comparison market or enhance their current offerings with a feature-rich application.
 
 ---
-
-Let me know if you need further edits or additional information!
